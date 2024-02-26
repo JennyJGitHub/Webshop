@@ -1,0 +1,140 @@
+﻿@page "/cart"
+@inject ISessionStorageService sessionStorage
+@inject UserManager<ApplicationUser> userManager
+@inject AuthenticationStateProvider stateProvider
+@inject NavigationManager navigationManager
+@inject DataAccess data
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+<PageTitle>Cart</PageTitle>
+
+<h3>Cart</h3>
+@if (productsInCart.Count == 0)
+{
+    <p>The cart is empty.</p>
+}
+else
+{
+    @* Varför kan jag inte få css från cart.razor.css? *@
+    <EditForm Model="Cust" OnSubmit="MakeOrder" style="max-width: 800px;">
+        <div class="row">
+            <div class="col">
+                <label for="firstName">First name:</label>
+                <InputText @bind-Value="Cust.FirstName" required id="firstName" class="form-control" placeholder="First name"></InputText>
+            </div>
+            <div class="col">
+                <label for="lastName">Last name:</label>
+                <InputText @bind-Value="Cust.LastName" required id="lastName" class="form-control" placeholder="Last name"></InputText>
+            </div>
+        </div>
+        <div class="row my-3">
+            <div class="col">
+                <label for="address">Address:</label>
+                <InputText @bind-Value="Cust.Address" required id="address" class="form-control" placeholder="Address"></InputText>
+            </div>
+            <div class="col">
+                <label for="zip">ZIP code:</label>
+                <InputText @bind-Value="Cust.ZIPCode" required id="zip" class="form-control" placeholder="ZIP code"></InputText>
+            </div>
+        </div>
+        <ul class="list-group">
+            @foreach (var prod in productsInCart)
+            {
+                <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-start">
+                    <a href="/product/@prod.Id" class="ms-2 me-auto">
+                        <div class="fw-bold">@prod.Name</div>
+                        @prod.Price EUR
+                    </a>
+                    <button @onclick="() => RemoveFromCart(prod)" class="btn btn-outline-dark" style="font-size: x-large;">
+                        <i class="bi bi-trash-fill"></i>
+                    </button>
+                </div>
+            }
+        </ul>
+        <div class="d-flex justify-content-between align-items-start">
+            <p class="m-4"><strong>@finalCost EUR</strong></p>
+            <button type="submit" class="btn btn-success mt-4">Make order</button>
+        </div>
+    </EditForm>
+}
+
+@code {
+    [SupplyParameterFromForm]
+    private Customer Cust { get; set; } = new() { FirstName = "", LastName = "", Address = "", ZIPCode = "" };
+
+    private List<Product> productsInCart = new();
+    private ApplicationUser user;
+    private double finalCost = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authenticationState = await stateProvider.GetAuthenticationStateAsync();
+        user = await userManager.GetUserAsync(authenticationState.User);
+
+        if (user != null)
+            productsInCart = await data.GetCart(user);
+
+        CalculateCost();
+    }
+
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (firstRender)
+    //     {
+    //         var cartData = await localStorage.GetItemAsync<List<Product>>("Cart"); // ska ändras till db
+    //         if (cartData is not null)
+    //             ProductsInCart = cartData;
+
+    //         CalculateCost();
+    //         StateHasChanged();
+    //         navigationManager.Refresh();
+    //     }
+    // }
+
+    private void CalculateCost()
+    {
+        foreach (var product in productsInCart)
+        {
+            finalCost += product.Price;
+        }
+
+        finalCost = Math.Round(finalCost, 2);
+    }
+
+    private async Task RemoveFromCart(Product product)
+    {
+        productsInCart.Remove(product);
+        user.Cart = productsInCart;
+        await data.UpdateUser(user);
+        product.Quantity += 1;
+        await data.UpdateProduct(product);
+
+        finalCost = 0;
+        CalculateCost();
+    }
+
+    private async Task MakeOrder()
+    {
+        Order? order = new();
+        List<Item> items = new();
+
+        foreach (var p in productsInCart)
+        {
+            Item newItem = new() { Name = p.Name, Price = p.Price };
+            items.Add(newItem);
+        }
+        order.Customer = Cust;
+        order.Items = items;
+        order.Cost = finalCost;
+        await sessionStorage.SetItemAsync<Order>("Order", order);
+
+        // Här ska användarens cart tömmas i databasen
+        productsInCart.Clear();
+        user.Cart = productsInCart;
+        await data.UpdateUser(user);
+        
+        finalCost = 0;
+        navigationManager.NavigateTo("/confirmation");
+    }
+}

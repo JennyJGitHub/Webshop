@@ -1,0 +1,94 @@
+﻿@page "/product/{id:int}"
+@inject UserManager<ApplicationUser> userManager
+@inject AuthenticationStateProvider stateProvider
+@inject NavigationManager navigationManager
+@inject DataAccess data
+@rendermode InteractiveServer
+
+<PageTitle>@productInfo?.Name</PageTitle>
+
+<main class="d-flex">
+    <div class="row justify-content-start">
+        <div class="col">
+            <h2>@productInfo?.Name</h2>
+            <p>@productInfo?.ShortDescription</p>
+            <p>@productInfo?.FullDescription</p>
+            @if (productInfo?.OnSale == true)
+            {
+                <p><strong class="text-danger">Price: @productInfo.Price @currency</strong><span class="badge bg-danger py-2 ms-3">On Sale!</span></p>
+            }
+            else
+            {
+                <p>Price: @productInfo?.Price @currency</p>
+            }
+            @if (productInfo?.Quantity > 0)
+            {
+                <button disabled="@notLoggedIn" @onclick="() => AddProductToCart(productInfo)" class="btn btn-success my-3">Add to cart</button>
+                <p>@productInfo.Quantity</p> // tas bort efter testning
+                @if (notLoggedIn)
+                {
+                    <p><strong>Log in to add things to the cart.</strong></p>
+                }
+            }
+            else
+            {
+                <p class="badge bg-danger mb3" style="font-size:larger">Sold out</p>
+            }
+        </div>
+        <div class="col">
+            <img src="@productInfo?.Image" />
+        </div>
+    </div>
+</main>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Product? productInfo;
+    private List<Product> cart = new();
+    private string currency = "EUR";
+    private bool notLoggedIn = true;
+    private ApplicationUser? user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id > 0)
+        {
+            var result = await data.GetProductById(Id);
+            if (result != null)
+            {
+                productInfo = result;
+
+                var authenticationState = await stateProvider.GetAuthenticationStateAsync();
+                user = await userManager.GetUserAsync(authenticationState.User);
+
+                if (user != null)
+                {
+                    notLoggedIn = false;
+                    var userCart = await data.GetCart(user);
+                    if (userCart != null)
+                        cart = userCart;
+                }
+            }
+            else
+            {
+                navigationManager.NavigateTo("/");
+            }
+        }
+        else
+        {
+            navigationManager.NavigateTo("/");
+        }
+    }
+
+    public async Task AddProductToCart(Product product)
+    {
+        // Kan bara lägga till 1 av varje product i datbasen, men flera stycken på hemsidan - måste fixas.
+        cart.Add(product);
+        user.Cart = cart;
+        await data.UpdateUser(user);
+        product.Quantity -= 1;
+        await data.UpdateProduct(product);
+    }
+}

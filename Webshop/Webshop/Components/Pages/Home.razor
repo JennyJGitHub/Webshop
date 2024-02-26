@@ -1,0 +1,86 @@
+﻿@page "/"
+@inject UserManager<ApplicationUser> userManager
+@inject AuthenticationStateProvider stateProvider
+@inject NavigationManager navigationManager
+@inject DataAccess data
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+
+<PageTitle>Home</PageTitle>
+
+<h1>Baked goods</h1>
+
+@if (notLoggedIn)
+{
+    <p><strong>Log in to add things to the cart.</strong></p>
+}
+@if (products == null)
+{
+    <p><i>Loading..</i></p>
+}
+else
+{
+    @* Varför kan jag inte ha css i Home.razor.css? *@
+    <main id="product-grid" class="mt-5">
+        @foreach (var product in products)
+        {
+            <ProductCard Product="product" OnClick="() => GoToProduct(product.Id)" OnButtonClick="() => AddProductToCart(product)" ></ProductCard>
+        }
+    </main>
+}
+
+@code {
+    private List<Product> products;
+    private List<Product> cart = new();
+    private bool notLoggedIn = true;
+    private ApplicationUser user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await data.GetAllProducts();
+
+        // Hämtar information om användaren som är inloggad
+        var authenticationState = await stateProvider.GetAuthenticationStateAsync();
+        // Hämtar vår user genom att använda oss av authenticationState
+        user = await userManager.GetUserAsync(authenticationState.User);
+
+        if (user != null)
+        {
+            notLoggedIn = false;
+            var userCart = await data.GetCart(user);
+            if (userCart != null)
+                cart = userCart;
+        }
+    }
+
+    // Om OnInitializedAsync inte vill fungera så flytta hit det
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (firstRender)
+    //     {
+    //         StateHasChanged();
+    //     }
+    // }
+
+    public async Task AddProductToCart(Product product)
+    {
+        if (user == null)
+        {
+            navigationManager.NavigateTo("/Account/Login");
+        }
+        else
+        {
+            // Kan bara lägga till 1 av varje product i datbasen, men flera stycken på hemsidan - måste fixas.
+            cart.Add(product);
+            user.Cart = cart;
+            await data.UpdateUser(user);
+            product.Quantity -= 1;
+            await data.UpdateProduct(product);
+        }
+    }
+
+    public void GoToProduct(int id)
+    {
+        navigationManager.NavigateTo("/product/" + id);
+    }
+}
