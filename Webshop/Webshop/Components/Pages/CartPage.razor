@@ -73,24 +73,10 @@ else
         user = await userManager.GetUserAsync(authenticationState.User);
 
         if (user != null)
-            productsInCart = await data.GetCart(user);
+            productsInCart = await data.GetCartItems(user);
 
         CalculateCost();
     }
-
-    // protected override async Task OnAfterRenderAsync(bool firstRender)
-    // {
-    //     if (firstRender)
-    //     {
-    //         var cartData = await localStorage.GetItemAsync<List<Product>>("Cart"); // ska ändras till db
-    //         if (cartData is not null)
-    //             ProductsInCart = cartData;
-
-    //         CalculateCost();
-    //         StateHasChanged();
-    //         navigationManager.Refresh();
-    //     }
-    // }
 
     private void CalculateCost()
     {
@@ -105,8 +91,7 @@ else
     private async Task RemoveFromCart(Product product)
     {
         productsInCart.Remove(product);
-        user.Cart = productsInCart;
-        await data.UpdateUser(user);
+        await data.RemoveCartItem(user, product);
         product.Quantity += 1;
         await data.UpdateProduct(product);
 
@@ -129,11 +114,9 @@ else
         order.Cost = finalCost;
         await sessionStorage.SetItemAsync<Order>("Order", order);
 
-        // Här ska användarens cart tömmas i databasen
         productsInCart.Clear();
-        user.Cart = productsInCart;
-        await data.UpdateUser(user);
-        
+        await data.EmptyCart(user);
+
         finalCost = 0;
         navigationManager.NavigateTo("/confirmation");
     }

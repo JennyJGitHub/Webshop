@@ -78,7 +78,7 @@
                 if (user != null)
                 {
                     notLoggedIn = false;
-                    var userCart = await data.GetCart(user);
+                    var userCart = await data.GetCartItems(user);
                     if (userCart != null)
                         cart = userCart;
                 }
@@ -96,10 +96,7 @@
 
     public async Task AddProductToCart(Product product)
     {
-        // Kan bara lägga till 1 av varje product i datbasen, men flera stycken på hemsidan - måste fixas.
-        cart.Add(product);
-        user.Cart = cart;
-        await data.UpdateUser(user);
+        await data.AddCartItem(user, product);
         product.Quantity -= 1;
         await data.UpdateProduct(product);
     }

@@ -12,5 +12,4 @@ public class Product
     public string Image { get; set; }
     public int Quantity { get; set; }
     public bool OnSale { get; set; }
-    public List<ApplicationUser>? Users { get; set; } = new();
 }
