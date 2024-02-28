@@ -1,4 +1,6 @@
-﻿namespace Webshop.Data.Models;
+﻿using Webshop.Data;
+
+namespace Webshop.Models;
 
 public class Product
 {

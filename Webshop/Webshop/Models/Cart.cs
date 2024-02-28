@@ -1,7 +1,7 @@
 ﻿//using Microsoft.EntityFrameworkCore;
 //using System.ComponentModel.DataAnnotations.Schema;
 
-//namespace Webshop.Data.Models;
+//namespace Webshop.Models;
 
 //public class Cart
 //{

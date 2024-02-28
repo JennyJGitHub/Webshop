@@ -40,6 +40,7 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 // Själv lagt till
 builder.Services.AddBlazoredSessionStorage();
 builder.Services.AddScoped<DataAccess>();
+builder.Services.AddScoped<HttpClient>();
 
 var app = builder.Build();
 

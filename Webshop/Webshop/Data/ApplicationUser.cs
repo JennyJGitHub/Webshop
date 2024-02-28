@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Identity;
-using Webshop.Data.Models;
+using Webshop.Models;
 
 namespace Webshop.Data
 {

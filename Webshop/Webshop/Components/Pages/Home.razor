@@ -35,32 +35,28 @@ else
     private bool notLoggedIn = true;
     private ApplicationUser user;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        products = await data.GetAllProducts();
-
-        // Hämtar information om användaren som är inloggad
-        var authenticationState = await stateProvider.GetAuthenticationStateAsync();
-        // Hämtar vår user genom att använda oss av authenticationState
-        user = await userManager.GetUserAsync(authenticationState.User);
-
-        if (user != null)
+        if (firstRender)
         {
-            notLoggedIn = false;
-            var userCart = await data.GetCart(user);
-            if (userCart != null)
-                cart = userCart;
+            products = await data.GetAllProducts();
+
+            // Hämtar information om användaren som är inloggad
+            var authenticationState = await stateProvider.GetAuthenticationStateAsync();
+            // Hämtar vår user genom att använda oss av authenticationState
+            user = await userManager.GetUserAsync(authenticationState.User);
+
+            if (user != null)
+            {
+                notLoggedIn = false;
+                var userCart = await data.GetCart(user);
+                if (userCart != null)
+                    cart = userCart;
+            }
+
+            StateHasChanged();
         }
     }
-
-    // Om OnInitializedAsync inte vill fungera så flytta hit det
-    // protected override async Task OnAfterRenderAsync(bool firstRender)
-    // {
-    //     if (firstRender)
-    //     {
-    //         StateHasChanged();
-    //     }
-    // }
 
     public async Task AddProductToCart(Product product)
     {

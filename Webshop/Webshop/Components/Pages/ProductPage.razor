@@ -1,6 +1,7 @@
 ﻿@page "/product/{id:int}"
 @inject UserManager<ApplicationUser> userManager
 @inject AuthenticationStateProvider stateProvider
+@inject HttpClient httpClient
 @inject NavigationManager navigationManager
 @inject DataAccess data
 @rendermode InteractiveServer
@@ -10,17 +11,25 @@
 <main class="d-flex">
     <div class="row justify-content-start">
         <div class="col">
-            <h2>@productInfo?.Name</h2>
+            <h2>@productInfo?.Name 
+                @if (productInfo?.OnSale == true)
+                {
+                    <span class="badge rounded-pill bg-danger py-2 ms-2 align-text-top" style="font-size: xx-small">On Sale!</span>       
+                }
+                </h2>
             <p>@productInfo?.ShortDescription</p>
             <p>@productInfo?.FullDescription</p>
-            @if (productInfo?.OnSale == true)
-            {
-                <p><strong class="text-danger">Price: @productInfo.Price @currency</strong><span class="badge bg-danger py-2 ms-3">On Sale!</span></p>
-            }
-            else
-            {
-                <p>Price: @productInfo?.Price @currency</p>
-            }
+            <div>
+                <strong class="text-@(productInfo?.OnSale == true ? "danger" : "black")">Price: @price</strong>
+                <InputSelect @bind-Value="currency" class="form-select-sm">
+                    @foreach (var c in Enum.GetValues<Currencies>())
+                    {
+                        <option value="@c">@c</option>
+                    }
+                </InputSelect>
+            </div>
+            <button @onclick="ChangeCurrency" class="btn btn-outline-dark my-2">Change currency</button>
+            <br />
             @if (productInfo?.Quantity > 0)
             {
                 <button disabled="@notLoggedIn" @onclick="() => AddProductToCart(productInfo)" class="btn btn-success my-3">Add to cart</button>
@@ -48,6 +57,8 @@
     private Product? productInfo;
     private List<Product> cart = new();
     private string currency = "EUR";
+    private double exchangeRate;
+    private double price;
     private bool notLoggedIn = true;
     private ApplicationUser? user;
 
@@ -59,6 +70,7 @@
             if (result != null)
             {
                 productInfo = result;
+                price = productInfo.Price;
 
                 var authenticationState = await stateProvider.GetAuthenticationStateAsync();
                 user = await userManager.GetUserAsync(authenticationState.User);
@@ -90,5 +102,21 @@
         await data.UpdateUser(user);
         product.Quantity -= 1;
         await data.UpdateProduct(product);
+    }
+
+    public async Task ChangeCurrency()
+    {
+        httpClient.DefaultRequestHeaders.Clear();
+        httpClient.DefaultRequestHeaders.Add("X-Api-key", "xfi803P6GmovNmIZsNJ1sg==hAM6khgY6ZkMjdvv");
+        var response = await httpClient.GetFromJsonAsync<CurrencyExchangeRate>($"https://api.api-ninjas.com/v1/exchangerate?pair=EUR_{currency}");
+
+        exchangeRate = response.exchange_rate;
+        price = productInfo.Price * exchangeRate;
+        price = Math.Round(price, 2);
+    }
+
+    private class CurrencyExchangeRate
+    {
+        public double exchange_rate { get; set; }
     }
 }
