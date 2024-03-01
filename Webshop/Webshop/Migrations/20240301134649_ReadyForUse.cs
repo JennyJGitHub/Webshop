@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Webshop.Migrations
 {
     /// <inheritdoc />
-    public partial class TestingRelations : Migration
+    public partial class ReadyForUse : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -178,24 +178,26 @@ namespace Webshop.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ApplicationUserProduct",
+                name: "CartItems",
                 columns: table => new
                 {
-                    CartId = table.Column<int>(type: "int", nullable: false),
-                    UsersId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ApplicationUserProduct", x => new { x.CartId, x.UsersId });
+                    table.PrimaryKey("PK_CartItems", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ApplicationUserProduct_AspNetUsers_UsersId",
-                        column: x => x.UsersId,
+                        name: "FK_CartItems_AspNetUsers_UserId",
+                        column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_ApplicationUserProduct_Products_CartId",
-                        column: x => x.CartId,
+                        name: "FK_CartItems_Products_ProductId",
+                        column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -212,11 +214,6 @@ namespace Webshop.Migrations
                     { 4, "Viverra mauris in aliquam sem. Ac auctor augue mauris augue. Ullamcorper sit amet risus nullam eget felis eget nunc. Egestas diam in arcu cursus euismod.", "https://images.pexels.com/photos/6210740/pexels-photo-6210740.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1", "Lemon Cupcake", false, 2.4900000000000002, 100, "Lemon cupcake with vanilla frosting and sprinkles." },
                     { 5, "Velit euismod in pellentesque massa placerat. Libero nunc consequat interdum varius sit amet mattis vulputate enim. Nisl rhoncus mattis rhoncus urna neque.", "https://images.pexels.com/photos/10975256/pexels-photo-10975256.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1", "Chocolate Cake", false, 49.990000000000002, 50, "Chocolate cake with berries." }
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ApplicationUserProduct_UsersId",
-                table: "ApplicationUserProduct",
-                column: "UsersId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -256,14 +253,21 @@ namespace Webshop.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CartItems_ProductId",
+                table: "CartItems",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CartItems_UserId",
+                table: "CartItems",
+                column: "UserId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "ApplicationUserProduct");
-
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -280,13 +284,16 @@ namespace Webshop.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Products");
+                name: "CartItems");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Products");
         }
     }
 }

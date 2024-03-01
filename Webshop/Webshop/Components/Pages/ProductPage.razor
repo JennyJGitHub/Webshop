@@ -8,47 +8,46 @@
 
 <PageTitle>@productInfo?.Name</PageTitle>
 
-<main class="d-flex">
-    <div class="row justify-content-start">
-        <div class="col">
-            <h2>@productInfo?.Name 
-                @if (productInfo?.OnSale == true)
-                {
-                    <span class="badge rounded-pill bg-danger py-2 ms-2 align-text-top" style="font-size: xx-small">On Sale!</span>       
-                }
-                </h2>
-            <p>@productInfo?.ShortDescription</p>
-            <p>@productInfo?.FullDescription</p>
-            <div>
-                <strong class="text-@(productInfo?.OnSale == true ? "danger" : "black")">Price: @price</strong>
-                <InputSelect @bind-Value="currency" class="form-select-sm">
-                    @foreach (var c in Enum.GetValues<Currencies>())
-                    {
-                        <option value="@c">@c</option>
-                    }
-                </InputSelect>
-            </div>
-            <button @onclick="ChangeCurrency" class="btn btn-outline-dark my-2">Change currency</button>
-            <br />
-            @if (productInfo?.Quantity > 0)
+
+<main class="row">
+    <div class="col" style="max-width: 500px">
+        <h2>@productInfo?.Name 
+            @if (productInfo?.OnSale == true)
             {
-                <button disabled="@notLoggedIn" @onclick="() => AddProductToCart(productInfo)" class="btn btn-success my-3">Add to cart</button>
-                <p>@productInfo.Quantity</p> // tas bort efter testning
-                @if (notLoggedIn)
-                {
-                    <p><strong>Log in to add things to the cart.</strong></p>
-                }
+                <span class="badge rounded-pill bg-danger py-2 ms-2 align-text-top" style="font-size: xx-small">On Sale!</span>       
             }
-            else
+            </h2>
+        <p>@productInfo?.ShortDescription</p>
+        <p>@productInfo?.FullDescription</p>
+        <strong class="text-@(productInfo?.OnSale == true ? "danger" : "black")">Price: @price</strong>
+        <InputSelect @bind-Value="currency" class="form-select-sm me-2">
+            @foreach (var c in Enum.GetValues<Currencies>())
             {
-                <p class="badge bg-danger mb3" style="font-size:larger">Sold out</p>
+                <option value="@c">@c</option>
             }
-        </div>
-        <div class="col">
-            <img src="@productInfo?.Image" />
+        </InputSelect>
+        <button @onclick="ChangeCurrency" class="btn btn-sm btn-outline-dark my-2">Change currency</button>
+        <div>
+        @if (productInfo?.Quantity > 0)
+        {
+            <button disabled="@notLoggedIn" @onclick="() => AddProductToCart(productInfo)" class="btn btn-success my-3">Add to cart</button>
+            @if (notLoggedIn)
+            {
+                <p><strong>Log in to add things to the cart.</strong></p>
+            }
+        }
+        else
+        {
+            <p class="badge bg-danger my-3" style="font-size:larger">Sold out</p>
+        }
+
         </div>
     </div>
+    <div class="col">
+        <img style="width: 350px" src="@productInfo?.Image" />
+    </div>
 </main>
+
 
 @code {
     [Parameter]

@@ -20,8 +20,7 @@
 }
 else
 {
-    @* Varför kan jag inte ha css i Home.razor.css? *@
-    <main id="product-grid" class="mt-5">
+    <main id="products" class="mt-4">
         @foreach (var product in products)
         {
             <ProductCard Product="product" OnClick="() => GoToProduct(product.Id)" OnButtonClick="() => AddProductToCart(product)" ></ProductCard>

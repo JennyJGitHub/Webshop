@@ -1,5 +1,5 @@
-﻿#product-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+﻿#products {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
 }

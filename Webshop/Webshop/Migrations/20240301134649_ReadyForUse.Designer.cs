@@ -12,8 +12,8 @@ using Webshop.Data;
 namespace Webshop.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240228100243_TestingRelations2")]
-    partial class TestingRelations2
+    [Migration("20240301134649_ReadyForUse")]
+    partial class ReadyForUse
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

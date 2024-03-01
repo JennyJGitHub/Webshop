@@ -1,4 +1,4 @@
-﻿<div class="card mb-4" style="width: 20rem;" @onclick="ToProduct">
+﻿<div class="card me-3 mb-4" style="width: 20rem;" @onclick="ToProduct">
     <img src="@Product?.Image" class="card-img-top">
     <div class="card-body align-content-center">
         <h5 class="card-title">@Product?.Name</h5>
@@ -12,7 +12,6 @@
         else
         {
             <p class="card-text mt-4 m-3">Price: @Product?.Price EUR</p>
-            <p>@Product?.Quantity</p> // test, ta bort
         }
         @if (Product?.Quantity > 0)
         {
